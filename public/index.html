@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Uptime Status</title>
+    <link class="favicon" rel="apple-touch-icon" sizes="180x180" href="/upicons/apple-touch-icon.png">
+    <link class="favicon" rel="icon" type="image/png" sizes="32x32" href="/upicons/favicon-32x32.png">
+    <link class="favicon" rel="icon" type="image/png" sizes="16x16" href="/upicons/favicon-16x16.png">
+    <link class="favicon" rel="manifest" href="/upicons/site.webmanifest">
+    <link rel="stylesheet" href="/bootstrap.min.css"> 
+    <script>
+        const apiKey = window.location.pathname.substring(1)
+        const refreshRate = 300000
+        function displayError(e) {
+            console.error(e)
+            document.getElementById('container').innerHTML = `<div class="alert alert-danger">Error querying API!</div>`
+            setTimeout(() => { 
+                window.location.reload(true) 
+            }, refreshRate)
+        }
+
+        function load() {
+            fetch('/api/checks?api-key=' + apiKey).then((data) => {
+                data.json().then((data) => {
+                    data.sort((a, b) => {
+                        if (a.down) return -1
+                        if (b.down) return 1
+                        return 0
+                    })
+                    let lastUpdated = new Date()
+                    lastUpdated = lastUpdated.toLocaleString()
+                    let hasDown = false
+                    let html = `<div class="row">
+                        <div class="col-12">
+                            <div class="card bg-info text-white">
+                                <h1 class="card-header">
+                                    Last updated: ${lastUpdated}
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">`;
+                    data.map((check) => {
+                        let statusClass 
+                        let statusText
+                        let checkName = check.alias ? check.alias : check.url
+                        if (check.enabled) {
+                            if (check.down) {
+                                hasDown = true
+                                statusText = `DOWN Since ${check.down_since}`
+                                statusClass = 'danger'
+                            } else {
+                                statusText = 'UP'
+                                statusClass= 'success'
+                            }
+                        } else {
+                            statusText = 'DISABLED'
+                            statusClass = 'warning'
+                        }
+                        let publishedText = check.published ? `<a href="https://updown.io/${check.token}" class="btn btn-info" target="_blank">Details</a>` : ''
+                        html += `
+                        <div class="col-md-12 col-lg-6" id="check-${check.token}">
+                            <div class="card">
+                                <div class="card-body text-white bg-${statusClass}">
+                                    ${checkName} - ${statusText} ${publishedText}
+                                </div>
+                            </div>
+                        </div>
+                        `
+               
+                    })
+                    html += '</div>'
+                    document.getElementById('container').innerHTML = html
+                    const icons = document.getElementsByClassName('favicon')
+                    for(let i = 0; i < icons.length; i++) {
+                        let el = icons[i]
+                        if (hasDown) {
+                            el.href = el.href.replace('upicons', 'downicons')
+                        } else {
+                            el.href = el.href.replace('downicons', 'upicons')
+                        }
+                    }
+                    setTimeout(load, refreshRate)
+                }).catch(displayError)
+            }).catch(displayError)
+        }
+        load()
+    </script>
+  </head>
+
+  <body>
+      <div id="container" class="container-xl">
+          <div class="alert alert-info">Loading...</div>
+      </div>
+  </body>
+
+</html>

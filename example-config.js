@@ -1,18 +1,11 @@
 module.exports = {
-    host: '127.0.0.',
+    host: '127.0.0.1',
     port: 3000,
-    cache: {
-        length: 268435456,
-        maxAge: 3600000,
-        length: (n, key) => { return JSON.stringify(n.length) }
-    },
     apiKey: 'yourapikey',
-    urls: {
-        somerandomstring: {
-            tokens: [
-                'token1',
-                'token2',
-            ]       
-        }
+    internalApiKeys: {
+        somerandomstring: [
+            'token1',
+            'token2',
+        ]       
     }
 }

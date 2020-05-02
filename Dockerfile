@@ -3,8 +3,7 @@ MAINTAINER Rowan Wookey <admin@rwky.net>
 WORKDIR app
 COPY package.json /app/
 COPY package-lock.json /app/
-RUN npm i
+RUN npm ci
 COPY index.js /app/
 COPY public /app/public
-COPY views /app/views
 CMD ["node", "index.js"]
